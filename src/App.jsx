@@ -110,29 +110,37 @@ useEffect(() => {
   return (
     <div className="container">
       <h1>🎉 RFWin 2025 Conference Bingo 🎉</h1>
-      <div className="bingo-grid">
-        {bingoItems.map((item, index) => (
-          <div
-            key={index}
-            className={`square ${marked[index] ? 'marked' : ''}`}
-            onClick={() => toggleSquare(index)}
-          >
-            {item}
+  
+      <div className="layout">
+        <div className="bingo-board">
+          <div className="bingo-grid">
+            {bingoItems.map((item, index) => (
+              <div
+                key={index}
+                className={`square ${marked[index] ? 'marked' : ''}`}
+                onClick={() => toggleSquare(index)}
+              >
+                {item}
+              </div>
+            ))}
           </div>
-        ))}
+          {isBingo && <p className="bingo">BINGO! 🎊</p>}
+          {isBlackout && <p className="blackout">BLACKOUT! 🌟✨</p>}
+        </div>
+  
+        <div className="leaderboard">
+          <h2>🏆 Leaderboard</h2>
+          <ol>
+            {leaderboard.map((user, index) => (
+              <li key={user.id}>
+                User {index + 1} – {user.count} squares
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
-      {isBingo && <p className="bingo">BINGO! 🎊</p>}
-      {isBlackout && <p className="blackout">BLACKOUT! 🌟✨</p>}
-      <h2>🏆 Leaderboard</h2>
-<ol>
-  {leaderboard.map((user, index) => (
-    <li key={user.id}>
-      User {index + 1} – {user.count} squares
-    </li>
-  ))}
-</ol>
     </div>
-  );
+  );  
 }
 
 // Simple check for rows/cols/diags
