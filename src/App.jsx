@@ -37,6 +37,9 @@ const bingoItems = [
 function App() {
   const [marked, setMarked] = useState(Array(25).fill(false));
   const [user, setUser] = useState(null);
+  const [nickname, setNickname] = useState("");
+const [tempName, setTempName] = useState("");
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -49,7 +52,13 @@ function App() {
     return () => unsubscribe();
   }, []);  
   
-
+  const saveNickname = async () => {
+    if (!user || !tempName) return;
+    const ref = doc(db, "users", user.uid);
+    await setDoc(ref, { nickname: tempName }, { merge: true });
+    setNickname(tempName); // Hide the input after saving
+  };
+  
   // Load saved progress on start
   useEffect(() => {
     const fetchData = async () => {
@@ -59,6 +68,7 @@ function App() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.marked) setMarked(data.marked);
+          if (data.nickname) setNickname(data.nickname);          
         }
       }
     };
@@ -127,6 +137,19 @@ useEffect(() => {
 <div className="container">
   <h1>🎉 RFWin 2025 Conference Bingo 🎉</h1>
 
+  {user && !nickname && (
+  <div className="nickname-form">
+    <p>Pick a nickname for the leaderboard:</p>
+    <input
+      type="text"
+      value={tempName}
+      onChange={(e) => setTempName(e.target.value)}
+      placeholder="e.g. PieLover42"
+    />
+    <button onClick={saveNickname}>Save</button>
+  </div>
+)}
+
   <div className="layout">
     <div className="bingo-grid">
       {bingoItems.map((item, index) => (
@@ -144,9 +167,9 @@ useEffect(() => {
       <h2>🏆 Leaderboard</h2>
       <ol>
         {leaderboard.map((user, index) => (
-          <li key={user.id}>
-            User {index + 1} – {user.count} squares
-          </li>
+  <li key={user.id}>
+  {user.nickname || `User ${index + 1}`}: {user.count} squares
+</li>
         ))}
       </ol>
     </div>
