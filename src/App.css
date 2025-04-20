@@ -1,28 +1,15 @@
-/* CONTAINER */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
   font-family: sans-serif;
-  text-align: center;
 }
 
-/* FLEX ROW */
 .layout {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 2rem;
-  margin-top: 2rem;
+  flex-direction: row;
   flex-wrap: wrap;
-}
-
-/* BINGO BOARD + GRID */
-.bingo-board {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 600px;
+  gap: 2rem;
 }
 
 .bingo-grid {
@@ -30,13 +17,16 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
   width: 100%;
+  max-width: 800px;
+  flex-shrink: 0;
 }
 
-/* SQUARES */
 .square {
+  box-sizing: border-box;          
   background-color: #D6109B;
   color: white;
   padding: 1rem;
+  padding-inline: 1.25rem;
   aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
@@ -46,22 +36,28 @@
   text-align: center;
   transition: background-color 0.3s ease;
   cursor: pointer;
+  word-break: break-word;
+  line-height: 1.3;
 }
+
 
 .square.marked {
   background-color: #AF11D8;
   font-weight: bold;
 }
 
-/* LEADERBOARD */
 .leaderboard {
   width: 250px;
+  flex-shrink: 0;
   background-color: #F992CC;
-  color: #fff;
+  color: white;
   padding: 1rem;
   border-radius: 8px;
-  flex-shrink: 0;
   text-align: left;
+}
+
+.leaderboard h2 {
+  margin-top: 0.5rem; /* or increase as needed */
 }
 
 .bingo {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db, auth } from './firebase';
 import { collection, getDocs } from "firebase/firestore";
+import { onAuthStateChanged } from 'firebase/auth';
 import confetti from 'canvas-confetti';
 
 import './App.css';
@@ -18,7 +19,7 @@ const bingoItems = [
   "Attend Session: Recipes Track",
   "Attend Session: Kitchen Sink Track",
   "Connect with your RFWin buddy",
-  "Free space",
+  "Free space: all PIE members",
   "Nominate someone for an InsPIEre award",
   "Share that you're attending RFWin on LinkedIn",
   "Attend a pre-conference event",
@@ -35,7 +36,19 @@ const bingoItems = [
 
 function App() {
   const [marked, setMarked] = useState(Array(25).fill(false));
-  const user = auth.currentUser;
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log('👤 Firebase user state changed:', firebaseUser); // <--- ADD THIS
+      if (firebaseUser) {
+        setUser(firebaseUser);
+      }
+    });
+  
+    return () => unsubscribe();
+  }, []);  
+  
 
   // Load saved progress on start
   useEffect(() => {
@@ -81,7 +94,10 @@ useEffect(() => {
 
     if (user) {
       const ref = doc(db, "users", user.uid);
-      await setDoc(ref, { marked: newMarked }, { merge: true });
+      await setDoc(ref, {
+        marked: newMarked,
+        count: newMarked.filter((m) => m).length, // ✅ Add this!
+      }, { merge: true });      
     }
   };
 
@@ -108,38 +124,38 @@ useEffect(() => {
   }, [isBingo, isBlackout]);
 
   return (
-    <div className="container">
-      <h1>🎉 RFWin 2025 Conference Bingo 🎉</h1>
-  
-      <div className="layout">
-        <div className="bingo-board">
-          <div className="bingo-grid">
-            {bingoItems.map((item, index) => (
-              <div
-                key={index}
-                className={`square ${marked[index] ? 'marked' : ''}`}
-                onClick={() => toggleSquare(index)}
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-          {isBingo && <p className="bingo">BINGO! 🎊</p>}
-          {isBlackout && <p className="blackout">BLACKOUT! 🌟✨</p>}
+<div className="container">
+  <h1>🎉 RFWin 2025 Conference Bingo 🎉</h1>
+
+  <div className="layout">
+    <div className="bingo-grid">
+      {bingoItems.map((item, index) => (
+        <div
+          key={index}
+          className={`square ${marked[index] ? 'marked' : ''}`}
+          onClick={() => toggleSquare(index)}
+        >
+          {item}
         </div>
-  
-        <div className="leaderboard">
-          <h2>🏆 Leaderboard</h2>
-          <ol>
-            {leaderboard.map((user, index) => (
-              <li key={user.id}>
-                User {index + 1} – {user.count} squares
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
+      ))}
     </div>
+
+    <div className="leaderboard">
+      <h2>🏆 Leaderboard</h2>
+      <ol>
+        {leaderboard.map((user, index) => (
+          <li key={user.id}>
+            User {index + 1} – {user.count} squares
+          </li>
+        ))}
+      </ol>
+    </div>
+  </div>
+
+  {isBingo && <p className="bingo">BINGO! 🎊</p>}
+  {isBlackout && <p className="blackout">BLACKOUT! 🌟✨</p>}
+</div>
+
   );  
 }
 
