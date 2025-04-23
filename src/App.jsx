@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db, auth } from './firebase';
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, getDoc, setDoc } from "firebase/firestore";
 import { onAuthStateChanged } from 'firebase/auth';
 import confetti from 'canvas-confetti';
 
@@ -38,19 +38,26 @@ function App() {
   const [marked, setMarked] = useState(Array(25).fill(false));
   const [user, setUser] = useState(null);
   const [nickname, setNickname] = useState("");
-const [tempName, setTempName] = useState("");
-
+  const [tempName, setTempName] = useState("");
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log('👤 Firebase user state changed:', firebaseUser); // <--- ADD THIS
+      console.log('👤 Firebase user state changed:', firebaseUser);
       if (firebaseUser) {
         setUser(firebaseUser);
+      } else {
+        signInAnonymously(auth)
+          .then(result => {
+            console.log('✅ Signed in anonymously:', result.user);
+          })
+          .catch(error => {
+            console.error('❌ Anonymous sign-in failed:', error);
+          });
       }
     });
   
     return () => unsubscribe();
-  }, []);  
+  }, []);   
   
   const saveNickname = async () => {
     if (!user || !tempName) return;
@@ -95,6 +102,24 @@ useEffect(() => {
   loadLeaderboard();
 }, []);
 
+useEffect(() => {
+  const fetchLeaderboard = async () => {
+    const querySnapshot = await getDocs(collection(db, "users"));
+    const leaderboardData = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const count = data.marked ? data.marked.filter(Boolean).length : 0;
+      leaderboardData.push({
+        id: doc.id,
+        count,
+        nickname: data.nickname || "", // 👈 MAKE SURE THIS IS INCLUDED
+      });
+    });
+    setLeaderboard(leaderboardData);
+  };
+
+  fetchLeaderboard();
+}, []);
 
   // Save progress when updated
   const toggleSquare = async (index) => {
@@ -167,8 +192,8 @@ useEffect(() => {
       <h2>🏆 Leaderboard</h2>
       <ol>
         {leaderboard.map((user, index) => (
-  <li key={user.id}>
-  {user.nickname || `User ${index + 1}`}: {user.count} squares
+          <li key={user.id}>
+  {user.nickname ? user.nickname : `User ${index + 1}`} 🥧 {user.count} points
 </li>
         ))}
       </ol>
